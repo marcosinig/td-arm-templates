@@ -19,11 +19,126 @@
             "metadata": {
                 "description": "The Azure location to deploy the resources."
             }
+        },
+         "adminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Username for virtual machine"
+            }
+        },
+         "aadClientId": {
+			"type": "string",
+             "defaultValue": "",
+			"metadata": {
+				"description": "Azure AD Client ID"
+			} 
+		},
+        "aadClientSecret": {
+			"type": "securestring",             
+            "defaultValue": "",
+			"metadata": {
+				"description": "Azure AD Client Secret"
+			}
+		},
+          "userEmail": {
+			"type": "string",
+            "defaultValue": "",
+			"metadata": {
+				"description": "Email from the user with Admin access"
+			}
+		},
+		"userObjectId": {
+			"type": "securestring",
+            "defaultValue": "",
+			"metadata": {
+				"description": "User Object ID"
+			}
+		},
+        "dockerHubUsername": {
+			"type": "string",
+			"metadata": {
+				"description": "Docker Hub Username"
+			}
+		},
+		"dockerHubPassword": {
+			"type": "securestring",
+			"metadata": {
+				"description": "Docker Hub Password"
+			}
+		},
+		"githubToken": {
+            "type": "securestring",
+            "metadata" : {
+                "description": "Git Hub token for private repo"
+            }
+        } ,
+        "mobiusflowLicense": {
+            "type": "string",
+            "metadata" : {
+                "description": "MobiusflowLicense"
+            }
+        },
+         "iotCentralLocation": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "location where the IOT Central Application should be deployed."
+            }
+        },
+        "iotCentralName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "name of the IOT Central Application"
+            }
+        },
+        "subdomain": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "IOT Central Application URL, subdomain.azureiotcentral.com"
+            }
+        },
+        "sku": {
+            "type": "string",
+            "defaultValue": "ST0",
+            "allowedValues": [
+                "ST0",
+                "ST1",
+                "ST2"
+            ],
+            "metadata": {
+                "description": "Sku Tier of the IOT Central App"
+            }
+        },
+        "dnsNamePrefix": {
+            "type": "string",
+            "metadata" : {
+                "description": "Virtual machine domain name"
+            }
+        },
+         "isIotHubDeploy": {
+            "type": "bool",
+            "metadata" : {
+                "description": "Defines if Iot Hub has to be deployed"
+            }
+        },
+        "template": {
+            "type": "string",
+            "defaultValue": "iotc-pnp-preview@1.0.0",
+            "metadata": {
+                "description": "Template to be used for the IOT Central App, https://docs.microsoft.com/en-gb/azure/iot-central/core/concepts-app-templates"
+            }
         }
+
     },
     "variables": {
-         "scriptUrl": "https://raw.githubusercontent.com/marcosinig/td-iothub-iotcentral-aruba/master/aziotcia.sh",
-                 "scriptFileName": "aziotcia.sh"
+        "scriptUrl": "https://raw.githubusercontent.com/marcosinig/td-iothub-iotcentral-aruba/master/aziotcia.sh",
+        "scriptFileName": "aziotcia.sh",
+        "tenantId": "[subscription().tenantId]",
+        "subscriptionId": "[subscription().subscriptionId]",
+        "resourceGroupName": "[resourceGroup().name]",
+        "vmDomainName" :  "[concat(parameters('DnsNamePrefix'),'.',parameters('location'),'.','cloudapp.azure.com')]",
     },
     "resources": [
         {
@@ -43,7 +158,13 @@
 				    ]
 			    },
 			    "protectedSettings": {
-				    "commandToExecute": "[concat('bash ', variables('scriptFileName'), ' \"', 
+				   			    "commandToExecute": "[concat('bash ', variables('scriptFileName'), ' \"', variables('tenantId'), '\" ', ' \"', variables('subscriptionId'), 
+                    '\" ', ' \"', parameters('adminUsername'), '\" ', ' \"', parameters('aadClientId'), '\" ', ' \"', parameters('aadClientSecret'), '\" ', ' \"', 
+                    parameters('userEmail'), '\" ', ' \"', parameters('userObjectId'), '\" ', ' \"', parameters('iotCentralName'), '\" ', ' \"', 
+                    parameters('iotCentralLocation'), '\" ', ' \"', parameters('sku'), '\" ', ' \"', parameters('subdomain'), '\" ', ' \"', parameters('template'), 
+                    '\" ', ' \"', variables('resourceGroupName'), '\" ', ' \"', parameters('dockerHubUsername'), '\" ', ' \"', parameters('dockerHubPassword'), '\"' , 
+                    ' \"', parameters('githubToken'), '\"', ' \"', variables('vmDomainName'), '\"' , ' \"', parameters('mobiusflowLicense'), '\"',
+                    ' \"', parameters('isIotHubDeploy'), '\"' , 
                     ' \"', listKeys(resourceId('Microsoft.Devices/IotHubs', parameters('iotHubName')), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).value[0].primaryKey, '\"' , 
                     ' \"', reference(resourceId('Microsoft.Devices/IoTHubs', parameters('iotHubName')), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).hostName, '\"')]"
 			    }
