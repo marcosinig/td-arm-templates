@@ -1,0 +1,54 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "The VM Name"
+            }
+        },
+        "iotHubName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Administrator of the new VMs and Domain"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The Azure location to deploy the resources."
+            }
+        }
+    },
+    "variables": {
+         "scriptUrl": "https://raw.githubusercontent.com/marcosinig/td-iothub-iotcentral-aruba/master/aziotcia.sh",
+                 "scriptFileName": "aziotcia.sh"
+    },
+    "resources": [
+        {
+           
+		    "type": "Microsoft.Compute/virtualMachines/extensions",
+		    "name": "[concat(parameters('vmName'), '/azIotc')]",
+		    "location": "[parameters('location')]",
+		    "apiVersion": "2019-07-01",
+		    "properties": {
+			    "publisher": "Microsoft.Azure.Extensions",
+			    "type": "CustomScript",
+			    "typeHandlerVersion": "2.0",
+			    "autoUpgradeMinorVersion": true,
+			    "settings": {
+				    "fileUris": [
+					    "[variables('scriptUrl')]"
+				    ]
+			    },
+			    "protectedSettings": {
+				    "commandToExecute": "[concat('bash ', variables('scriptFileName'), ' \"', 
+                    ' \"', listKeys(resourceId('Microsoft.Devices/IotHubs', parameters('iotHubName')), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).value[0].primaryKey, '\"' , 
+                    ' \"', reference(resourceId('Microsoft.Devices/IoTHubs', parameters('iotHubName')), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).hostName, '\"')]"
+			    }
+		    }
+        }
+    ],
+    "outputs": { }
+}
